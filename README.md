@@ -488,40 +488,9 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
-
-This project is licensed under the ISC License.
-
----
 
 ## 👨‍💻 Author
 
 **Rohan Goyal**  
 GitHub: [@rohangoyal3012](https://github.com/rohangoyal3012)
 
----
-
-## 📞 Support
-
-For support or queries:
-
-- Open an issue on GitHub
-- Watch the demo video for complete walkthrough
-- Check the troubleshooting section above
-
----
-
-## 🎉 Acknowledgments
-
-- React and Vite teams for excellent tooling
-- Express.js community
-- MySQL database
-- All open-source contributors
-
----
-
-**⭐ If you find this project useful, please consider giving it a star!**
-
----
-
-**Made with ❤️ using React, Node.js, and MySQL**
