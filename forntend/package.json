@@ -1,26 +1,45 @@
 {
-  "name": "frontend",
-  "version": "1.0.0",
-  "description": "Event Booking Frontend Application",
+  "name": "eventbooking-frontend",
+  "version": "2.0.0",
+  "description": "Production Event Booking Platform Frontend",
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
-    "axios": "^1.6.2",
-    "canvas-confetti": "^1.9.4",
-    "framer-motion": "^12.23.25",
+    "@tanstack/react-query": "^5.17.19",
+    "@tanstack/react-query-devtools": "^5.17.19",
+    "axios": "^1.6.7",
+    "canvas-confetti": "^1.9.3",
+    "date-fns": "^3.3.1",
+    "framer-motion": "^11.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0"
+    "react-hook-form": "^7.49.3",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.22.0",
+    "recharts": "^2.12.0",
+    "socket.io-client": "^4.7.4",
+    "zustand": "^4.5.0",
+    "zod": "^3.22.4",
+    "@hookform/resolvers": "^3.3.4",
+    "clsx": "^2.1.0",
+    "@heroicons/react": "^2.1.1"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.6.4",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "@types/node": "^20.11.16",
     "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.22",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18",
-    "vite": "^5.0.8"
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.1"
   }
 }

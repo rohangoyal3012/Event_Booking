@@ -1,0 +1,130 @@
+version: "3.9"
+
+services:
+  # ─── MySQL ──────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: eventbook_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-eventbooking}
+      MYSQL_USER: ${MYSQL_USER:-eventuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-eventpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: eventbook_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redispassword} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "--no-auth-warning",
+          "-a",
+          "${REDIS_PASSWORD:-redispassword}",
+          "ping",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Meilisearch ────────────────────────────────────────────
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: eventbook_meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-masterkey_change_me}
+      MEILI_ENV: production
+    ports:
+      - "7700:7700"
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: eventbook_api
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://${MYSQL_USER:-eventuser}:${MYSQL_PASSWORD:-eventpassword}@mysql:3306/${MYSQL_DATABASE:-eventbooking}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redispassword}@redis:6379
+      MEILI_HOST: http://meilisearch:7700
+      PORT: 9000
+    ports:
+      - "9000:9000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/server.js"
+
+  # ─── Background Worker ──────────────────────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: eventbook_worker
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://${MYSQL_USER:-eventuser}:${MYSQL_PASSWORD:-eventpassword}@mysql:3306/${MYSQL_DATABASE:-eventbooking}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redispassword}@redis:6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: node dist/worker.js
+
+  # ─── Frontend (optional - use CDN/S3 in real prod) ──────────
+  frontend:
+    build:
+      context: ./forntend
+      dockerfile: Dockerfile
+    container_name: eventbook_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  mysql_data:
+  redis_data:
+  meili_data:

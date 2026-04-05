@@ -16,10 +16,28 @@ const bookingRoutes = require("./routes/booking.route");
 const app = express();
 const PORT = process.env.PORT || 9000;
 
+// CORS Configuration - Allow all origins in development
+const corsOptions = {
+  origin: true, // This allows all origins
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  maxAge: 600, // 10 minutes
+};
+
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(
+    `${req.method} ${req.path} - Origin: ${req.headers.origin || "No origin"}`
+  );
+  next();
+});
 
 // Routes
 app.get("/", (req, res) => {
@@ -45,6 +63,15 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  // Handle JSON parsing errors
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    console.error("Bad JSON:", err.message);
+    return res.status(400).json({
+      error: "Invalid JSON format in request body",
+      details: err.message,
+    });
+  }
+
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
 });
